@@ -1,7 +1,9 @@
 package main
 
 import (
+	// "fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,18 +38,17 @@ func getAlbumById(c *gin.Context)  {
 			return
 		}
 	}
-
 	c.IndentedJSON(http.StatusNotFound,responseMessage{Message: "Album not found."}) 
-
 }
 
 func postAlbums(c *gin.Context)  {
-	
-	var newAlbum album
+	var newAlbum album	
 	if err:= c.BindJSON(&newAlbum);
 	err!=nil{
 		return
 	}
+	newAlbum.Id=strconv.Itoa(len(albumList)+1)//Assign the next id to the album
+
 	albumList=append(albumList, newAlbum)
 	c.IndentedJSON(http.StatusCreated,responseMessage{Message: "Album added to data base"}) 
 }
