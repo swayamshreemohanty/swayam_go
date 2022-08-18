@@ -1,24 +1,17 @@
 package main
 
 import (
-	// "fmt"
 	"net/http"
 	"strconv"
-
+	"web-server/model"
 	"github.com/gin-gonic/gin"
 )
 
 type responseMessage struct{
 	Message string `json:"message"`
 }
-type album struct{
-	Id string `json:"id"`
-	Title string `json:"title"`
-	Artist string `json:"artist"`
-	Price float64 `json:"price"`
-}
 
-var albumList=[]album{
+var albumList=[]album_model.AlbumModel{
 	{Id:"1",Title: "Bluetrain",Artist: "Swayam",Price: 56.6},
 	{Id:"2",Title: "jayveeru",Artist: "Jonny",Price: 30},
 	{Id:"3",Title: "Greenbala",Artist: "Dani",Price: 24.8},
@@ -42,15 +35,24 @@ func getAlbumById(c *gin.Context)  {
 }
 
 func postAlbums(c *gin.Context)  {
-	var newAlbum album	
-	if err:= c.BindJSON(&newAlbum);
+	var newAlbum album_model.AddAlbumModel	
+	if err:= c.ShouldBind(&newAlbum);
 	err!=nil{
+		c.IndentedJSON(http.StatusBadRequest,responseMessage{Message: string(err.Error())}) 
+		return
+	}else{
+		var album album_model.AlbumModel;
+		album.Id=strconv.Itoa(len(albumList)+1)//Assign the next id to the album
+		album.Title= newAlbum.Title
+		album.Artist= newAlbum.Artist
+		album.Price= newAlbum.Price
+		albumList=append(albumList, album)
+		c.JSON(http.StatusCreated,gin.H{
+			"status":"ok",
+			"data":album,
+			}) 
 		return
 	}
-	newAlbum.Id=strconv.Itoa(len(albumList)+1)//Assign the next id to the album
-
-	albumList=append(albumList, newAlbum)
-	c.IndentedJSON(http.StatusCreated,responseMessage{Message: "Album added to data base"}) 
 }
 func main(){
 	router:=gin.Default()
