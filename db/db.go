@@ -1,6 +1,9 @@
 package db
 
 import (
+	"errors"
+	"fmt"
+	"strconv"
 	. "web-server/model"
 )
 
@@ -14,8 +17,19 @@ type AlbumClient struct{}
 
 type AlbumDB interface{
 	GetAllAlbums()(*[]AlbumModel, error)
+	StoreAlbumToDB(newRequestedAlbum AddAlbumModel)(*AlbumModel, error)
 }
 
+func (_ *AlbumClient) GetAlbumsByIdDB(id string)(*AlbumModel, error){
+
+	for _,album:= range albumList {
+	//find the id from the album list
+		if album.Id==id{
+			return &album,nil
+		}
+	}
+	return nil,errors.New(fmt.Sprintf("Id %s not found", id))
+}
 
 func (_ *AlbumClient) GetAllAlbumsFromDB()(*[]AlbumModel, error){
 	result:= make([]AlbumModel, len(albumList))
@@ -24,6 +38,28 @@ func (_ *AlbumClient) GetAllAlbumsFromDB()(*[]AlbumModel, error){
 		result[index]=v
 		index++
 	}
-
 	return &result,nil
+}
+
+func (_ *AlbumClient) StoreAlbumToDB(newRequestedAlbum AddAlbumModel)(*AlbumModel, error){
+	
+	var lastAlbumId= albumList[len(albumList)-1].Id
+	 newAlbumid,err :=strconv.Atoi(lastAlbumId)
+	if err!=nil {
+		panic("Unable to add the album to data base")
+	}
+	var newAlbum AlbumModel //creating  the AlbumModel instance
+	
+	newAlbum.Id=strconv.Itoa(newAlbumid+1) //assign the (lastIndex+1) {ex:albumList last index} as the id of the new element
+	
+	//Assign AddAlbumModel elements to AlbumModel elements
+	newAlbum.Title=newRequestedAlbum.Title
+	newAlbum.Artist=newRequestedAlbum.Artist
+	newAlbum.Price=newRequestedAlbum.Price
+	//
+
+	//Insert the new album to the db
+	albumList = append(albumList, newAlbum)
+
+	return &newAlbum,nil
 }
