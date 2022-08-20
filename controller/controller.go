@@ -24,10 +24,27 @@ func GetAllAlbumData(c *gin.Context){
 	}
 }
 
+func DeleteAlbumById(c *gin.Context)  {
+	id:=c.Param("id")
+
+	album,err:= albumDbClient.DeleteAlbumsByIdFromDB(id)
+	if err!=nil {
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"false",
+			"data":err.Error(),
+			})
+	}else{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"true",
+			"data":"Id "+album.Id+" removed successfully",
+			})
+	}
+}
+
 func GetAlbumById(c *gin.Context)  {
 	id:=c.Param("id")
 
-	album,err:= albumDbClient.GetAlbumsByIdDB(id)
+	album,err:= albumDbClient.GetAlbumsByIdFromDB(id)
 	if err!=nil {
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",

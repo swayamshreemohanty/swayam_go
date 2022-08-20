@@ -2,8 +2,8 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
+	. "web-server/helper"
 	. "web-server/model"
 )
 
@@ -20,7 +20,7 @@ type AlbumDB interface{
 	StoreAlbumToDB(newRequestedAlbum AddAlbumModel)(*AlbumModel, error)
 }
 
-func (_ *AlbumClient) GetAlbumsByIdDB(id string)(*AlbumModel, error){
+func (_ *AlbumClient) GetAlbumsByIdFromDB(id string)(*AlbumModel, error){
 
 	for _,album:= range albumList {
 	//find the id from the album list
@@ -28,7 +28,24 @@ func (_ *AlbumClient) GetAlbumsByIdDB(id string)(*AlbumModel, error){
 			return &album,nil
 		}
 	}
-	return nil,errors.New(fmt.Sprintf("Id %s not found", id))
+	return nil,errors.New("No element found")
+}
+
+
+
+func (_ *AlbumClient) DeleteAlbumsByIdFromDB(id string)(*AlbumModel, error){
+	for albumIndex:= range albumList {
+		if albumList[albumIndex].Id==id {
+			newList,deletedAlbum,err:=RemoveAlbumAt(albumList,albumIndex)
+			if err!=nil {
+				return nil,errors.New(err.Error())
+			}
+			albumList=newList
+			return deletedAlbum,nil
+		}
+	}
+	
+	return nil,errors.New("No element found")
 }
 
 func (_ *AlbumClient) GetAllAlbumsFromDB()(*[]AlbumModel, error){
