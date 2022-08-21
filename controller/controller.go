@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	. "web-server/db"
 	. "web-server/model"
@@ -12,7 +11,6 @@ var albumDbClient AlbumClient
 
 func GetAllAlbumData(c *gin.Context){
 	albumsList,error:= albumDbClient.GetAllAlbumsFromDB()
-	fmt.Print(albumsList)
 	if error!=nil {
 		c.JSON(http.StatusBadRequest,gin.H{"Error":error.Error()})
 		return
@@ -27,7 +25,7 @@ func GetAllAlbumData(c *gin.Context){
 func DeleteAlbumById(c *gin.Context)  {
 	id:=c.Param("id")
 
-	album,err:= albumDbClient.DeleteAlbumsByIdFromDB(id)
+	err:= albumDbClient.DeleteAlbumsByIdFromDB(id)
 	if err!=nil {
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
@@ -36,10 +34,36 @@ func DeleteAlbumById(c *gin.Context)  {
 	}else{
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"true",
-			"data":"Id "+album.Id+" removed successfully",
+			"data":"Id "+id+" removed successfully",
 			})
 	}
 }
+func PutAlbumById(c *gin.Context)  {
+	id:=c.Param("id")
+	var newEditedAlbum AddAlbumModel	//create a instance of the AddAlbumModel
+	err:= c.ShouldBind(&newEditedAlbum);	//bind the request form data
+	if err!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"false",
+			"data":"Unable to edit the album",
+			}) 
+		return
+	}else{
+		err:= albumDbClient.PutAlbumsByIdToDB(id,newEditedAlbum)
+		if err!=nil {
+			c.JSON(http.StatusBadRequest,gin.H{
+				"status":"false",
+				"data":err.Error(),
+			})
+			}else{
+				c.JSON(http.StatusBadRequest,gin.H{
+					"status":"true",
+					"data":"Id "+id+" edited successfully",
+				})
+			}
+		}
+}
+
 
 func GetAlbumById(c *gin.Context)  {
 	id:=c.Param("id")

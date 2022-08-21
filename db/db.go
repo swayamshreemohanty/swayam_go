@@ -28,24 +28,41 @@ func (_ *AlbumClient) GetAlbumsByIdFromDB(id string)(*AlbumModel, error){
 			return &album,nil
 		}
 	}
-	return nil,errors.New("No element found")
+	return nil,errors.New("No album found")
 }
 
 
 
-func (_ *AlbumClient) DeleteAlbumsByIdFromDB(id string)(*AlbumModel, error){
+func (_ *AlbumClient) DeleteAlbumsByIdFromDB(id string)(error){
 	for albumIndex:= range albumList {
 		if albumList[albumIndex].Id==id {
-			newList,deletedAlbum,err:=RemoveAlbumAt(albumList,albumIndex)
+			newList,err:=RemoveAlbumAt(albumList,albumIndex)
 			if err!=nil {
-				return nil,errors.New(err.Error())
+				return errors.New(err.Error())
 			}
 			albumList=newList
-			return deletedAlbum,nil
+			return nil
 		}
 	}
 	
-	return nil,errors.New("No element found")
+	return errors.New("No element found")
+}
+func (_ *AlbumClient) PutAlbumsByIdToDB(id string,EditedAlbum AddAlbumModel)(error){
+	for albumIndex:= range albumList {
+		if albumList[albumIndex].Id==id {
+			 var editedAlbum AlbumModel //creating  the AlbumModel instance
+			 //Assign the new values
+			 editedAlbum.Id=id
+			 editedAlbum.Artist=EditedAlbum.Artist
+			 editedAlbum.Title=EditedAlbum.Title
+			 editedAlbum.Price=EditedAlbum.Price
+			 //
+			albumList[albumIndex]=editedAlbum //update the album model on the db list
+			return nil
+		}
+	}
+	
+	return errors.New("No album found")
 }
 
 func (_ *AlbumClient) GetAllAlbumsFromDB()(*[]AlbumModel, error){
