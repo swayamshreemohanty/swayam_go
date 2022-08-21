@@ -1,9 +1,9 @@
 package album_model
 
 type AddAlbumModel struct{
-	Title string `form:"title" json:"title" binding:"required"`
-	Artist string `form:"artist" json:"artist" binding:"required"`
-	Price float64 `form:"price" json:"price" binding:"required"`
+	Title string `form:"title" binding:"required"`
+	Artist string `form:"artist" binding:"required"`
+	Price float64 `form:"price" binding:"required"`
 }
 
 
