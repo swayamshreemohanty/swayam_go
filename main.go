@@ -12,8 +12,9 @@ func main(){
 	{
 		albums_routes.GET("",controller.GetAllAlbumData)
 		albums_routes.GET("/:id", controller.GetAlbumById)
-		albums_routes.DELETE("/:id", controller.DeleteAlbumById)
-		router.POST("/addAlbum", controller.PostAlbums)
+		albums_routes.DELETE("deleteAlbum/:id", controller.DeleteAlbumById)
+		albums_routes.PUT("editAlbum/:id", controller.PutAlbumById)
+		albums_routes.POST("/addAlbum", controller.PostAlbums)
 	}
 	router.Run("0.0.0.0:8000")
 }
