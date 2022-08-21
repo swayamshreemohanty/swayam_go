@@ -36,7 +36,7 @@ func (_ *AlbumClient) GetAlbumsByIdFromDB(id string)(*AlbumModel, error){
 func (_ *AlbumClient) DeleteAlbumsByIdFromDB(id string)(error){
 	for albumIndex:= range albumList {
 		if albumList[albumIndex].Id==id {
-			newList,err:=RemoveAlbumAt(albumList,albumIndex)
+			newList,_,err:=RemoveAlbumAt(albumList,albumIndex)
 			if err!=nil {
 				return errors.New(err.Error())
 			}
