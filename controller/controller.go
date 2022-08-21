@@ -32,7 +32,7 @@ func DeleteAlbumById(c *gin.Context)  {
 			"data":err.Error(),
 			})
 	}else{
-		c.JSON(http.StatusBadRequest,gin.H{
+		c.JSON(http.StatusAccepted,gin.H{
 			"status":"true",
 			"data":"Id "+id+" removed successfully",
 			})
@@ -56,7 +56,7 @@ func PutAlbumById(c *gin.Context)  {
 				"data":err.Error(),
 			})
 			}else{
-				c.JSON(http.StatusBadRequest,gin.H{
+				c.JSON(http.StatusAccepted,gin.H{
 					"status":"true",
 					"data":"Id "+id+" edited successfully",
 				})
@@ -75,7 +75,7 @@ func GetAlbumById(c *gin.Context)  {
 			"data":err.Error(),
 			})
 	}else{
-		c.JSON(http.StatusBadRequest,gin.H{
+		c.JSON(http.StatusAccepted,gin.H{
 			"status":"true",
 			"data":album,
 			})
