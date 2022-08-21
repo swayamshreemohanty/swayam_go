@@ -88,7 +88,7 @@ func PostAlbums(c *gin.Context)  {
 	 if err!=nil{
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
-			"data":"Unable to add the album",
+			"data":err.Error(),
 			}) 
 		return
 	}else{
