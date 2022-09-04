@@ -3,12 +3,12 @@ package mongodb
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	. "web-server/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type AlbumMongoContext struct {
@@ -29,11 +29,11 @@ func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) Album
 	}
 }
 
-func (ac *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id string)error  {
-	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
+func (albumMongoContext *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id string)error  {
+	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
 	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
 	update:=bson.M{"$set": newUpdatedAlbum}
-	result,err:=dbref.UpdateOne(ac.ctx,filter,update)
+	result,err:=dbref.UpdateOne(albumMongoContext.ctx,filter,update)
 	 if err!=nil {
 		return err
 	 }else if result.MatchedCount !=1 {
@@ -42,11 +42,11 @@ func (ac *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id s
 	return nil
 }
 
-func (ac *AlbumMongoContext) DeleteAlbumFromDB(id string)error  {
-	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
+func (albumMongoContext *AlbumMongoContext) DeleteAlbumFromDB(id string)error  {
+	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
 	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
 
-	result,err:=dbref.DeleteOne(ac.ctx,filter)
+	result,err:=dbref.DeleteOne(albumMongoContext.ctx,filter)
 	 if err!=nil {
 		return err
 	 }else if result.DeletedCount !=1 {
@@ -55,13 +55,11 @@ func (ac *AlbumMongoContext) DeleteAlbumFromDB(id string)error  {
 	return nil
 }
 
-func (ac *AlbumMongoContext) FindAlbumFromDB(id string)(*AlbumModel,error)  {
-	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
+func (albumMongoContext *AlbumMongoContext) FindAlbumFromDB(id string)(*AlbumModel,error)  {
+	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
 	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
 	var albumModel AlbumModel
-	fmt.Println(filter)
-	fmt.Println(albumModel.Artist)
-	err:=dbref.FindOne(ac.ctx,filter).Decode(&albumModel)
+	err:=dbref.FindOne(albumMongoContext.ctx,filter).Decode(&albumModel)
 	 if err!=nil {
 		return nil,errors.New("no album found")
 	 }
@@ -69,20 +67,30 @@ func (ac *AlbumMongoContext) FindAlbumFromDB(id string)(*AlbumModel,error)  {
 }
 
 
-func (ac *AlbumMongoContext)InsertAlbumToDB(addAlbum *AddAlbumModel)(*AlbumModel,error)  {
-	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
-
-	 totalDocCount,err:= dbref.CountDocuments(ac.ctx,bson.D{})
-	 if err!=nil {
-		panic(err)
-	 }
+func (albumMongoContext *AlbumMongoContext)InsertAlbumToDB(addAlbum *AddAlbumModel)(*AlbumModel,error)  {
+	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
+	//get the last element of the collection
+	var albumModel AlbumModel
+	myOption:=options.FindOne()
+	myOption.SetSort(bson.M{"$natural":-1})
+	dbref.FindOne(albumMongoContext.ctx,bson.M{},myOption).Decode(&albumModel)
+	// if err!=nil {
+		// return nil,err
+	// }
+	//
 	var newAlbum AlbumModel	
-	// Set the random id:
-	newAlbum.Id=strconv.Itoa(int(totalDocCount)+1)
+	// increase the id from the last element id:
+	lastElementid,err:=strconv.Atoi(albumModel.Id)
+	if err!=nil {
+		//set the lastElementid to 0, if there is error in find last element, mean the collection is empty
+		lastElementid=0
+	}
+	newElementId:=strconv.Itoa(lastElementid+1)
+	newAlbum.Id=newElementId
 	newAlbum.Title=addAlbum.Title
 	newAlbum.Artist=addAlbum.Artist
 	newAlbum.Price=addAlbum.Price
-	_,err=dbref.InsertOne(ac.ctx,newAlbum)
+	_,err=dbref.InsertOne(albumMongoContext.ctx,newAlbum)
 	if err!=nil {
 		return nil,err
 	}else{
@@ -90,16 +98,16 @@ func (ac *AlbumMongoContext)InsertAlbumToDB(addAlbum *AddAlbumModel)(*AlbumModel
 	}
 }
 
-func (ac *AlbumMongoContext)GetAllAlbumDataFromDB()([]AlbumModel,error){
+func (albumMongoContext *AlbumMongoContext)GetAllAlbumDataFromDB()([]AlbumModel,error){
 	var albumList [] AlbumModel
-	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
-	cursor,err :=	dbref.Find(ac.ctx,bson.D{{}})
+	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
+	cursor,err :=	dbref.Find(albumMongoContext.ctx,bson.D{{}})
 
 	if err !=nil {
 		return nil,err
 	}
 
-	for cursor.Next(ac.ctx) {
+	for cursor.Next(albumMongoContext.ctx) {
 		var albumModel AlbumModel
 		err:=cursor.Decode(&albumModel)
 		if err!=nil {
@@ -111,7 +119,7 @@ func (ac *AlbumMongoContext)GetAllAlbumDataFromDB()([]AlbumModel,error){
 	if err:=cursor.Err();err!=nil{
 		return nil,err
 	}
-	cursor.Close(ac.ctx)
+	cursor.Close(albumMongoContext.ctx)
 
 	if len(albumList)==0{
 		return nil,errors.New("no albums found")
