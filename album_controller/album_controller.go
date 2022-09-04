@@ -17,6 +17,32 @@ func New(albumService AlbumMongoService)  AlbumController{
 	return AlbumController{albumMongoService: albumService}
 }
 
+func (albumController *AlbumController) UpdateAlbum(c *gin.Context)  {
+	var newAddAlbum AddAlbumModel	
+	id:=c.Param("id")
+
+	 err:= c.ShouldBind(&newAddAlbum);
+	 if err!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"false",
+			"data":err.Error(),
+			}) 
+		return
+	}else{
+		err:=albumController.albumMongoService.UpdateAlbumOnDB(&newAddAlbum,id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"false",
+			"data":err.Error(),
+			})
+	}else{
+		c.JSON(http.StatusAccepted,gin.H{
+			"status":"true",
+			"data":newAddAlbum,
+		})
+		}
+	}
+}
 
 func (albumController *AlbumController) DeleteAlbumById(c *gin.Context)  {
 	id:=c.Param("id")
@@ -33,7 +59,6 @@ func (albumController *AlbumController) DeleteAlbumById(c *gin.Context)  {
 			"data":"Id "+id+" removed successfully",
 			})
 	}
-
 }
 
 func (albumController *AlbumController) GetAllAlbumData(c *gin.Context){
@@ -97,5 +122,5 @@ func (albumController *AlbumController) RegisterAlbumRoutes(ginRouter *gin.Route
 	albumRoute.GET("",albumController.GetAllAlbumData)
 	albumRoute.DELETE("deleteAlbum/:id", albumController.DeleteAlbumById)
 	albumRoute.GET("/:id", albumController.GetAlbumById)
-	// albums_routes.PUT("editAlbum/:id", controller.PutAlbumById)
+	albumRoute.PUT("editAlbum/:id", albumController.UpdateAlbum)
 }

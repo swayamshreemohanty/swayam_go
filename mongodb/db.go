@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	. "web-server/model"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,12 +20,26 @@ type AlbumMongoService interface{
 	GetAllAlbumDataFromDB() ([]AlbumModel,error)
 	FindAlbumFromDB(id string)(*AlbumModel,error) 
 	DeleteAlbumFromDB(id string) error
+	UpdateAlbumOnDB(newAddAlbum *AddAlbumModel,id string)error
 }
 func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) AlbumMongoService {
 	return &AlbumMongoContext{
 		ctx:ctx,
 		mongoclinet: mongoclinet,
 	}
+}
+
+func (ac *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id string)error  {
+	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
+	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
+	update:=bson.M{"$set": newUpdatedAlbum}
+	result,err:=dbref.UpdateOne(ac.ctx,filter,update)
+	 if err!=nil {
+		return err
+	 }else if result.MatchedCount !=1 {
+		return errors.New("no matched album found for update")
+	 }
+	return nil
 }
 
 func (ac *AlbumMongoContext) DeleteAlbumFromDB(id string)error  {
