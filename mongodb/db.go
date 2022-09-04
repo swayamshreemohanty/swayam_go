@@ -67,7 +67,7 @@ func (albumMongoContext *AlbumMongoContext) FindAlbumFromDB(id string)(*AlbumMod
 }
 
 
-func (albumMongoContext *AlbumMongoContext)InsertAlbumToDB(addAlbum *AddAlbumModel)(*AlbumModel,error)  {
+func (albumMongoContext *AlbumMongoContext) InsertAlbumToDB(addAlbum *AddAlbumModel)(*AlbumModel,error)  {
 	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
 	//get the last element of the collection
 	var albumModel AlbumModel
@@ -98,7 +98,7 @@ func (albumMongoContext *AlbumMongoContext)InsertAlbumToDB(addAlbum *AddAlbumMod
 	}
 }
 
-func (albumMongoContext *AlbumMongoContext)GetAllAlbumDataFromDB()([]AlbumModel,error){
+func (albumMongoContext *AlbumMongoContext) GetAllAlbumDataFromDB()([]AlbumModel,error){
 	var albumList [] AlbumModel
 	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
 	cursor,err :=	dbref.Find(albumMongoContext.ctx,bson.D{{}})
