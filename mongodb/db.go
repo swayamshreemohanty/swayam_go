@@ -3,10 +3,12 @@ package mongodb
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	. "web-server/model"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -17,6 +19,8 @@ type AlbumMongoContext struct {
 type AlbumMongoService interface{
 	InsertAlbumToDB(*AddAlbumModel) (*AlbumModel,error) 
 	GetAllAlbumDataFromDB() ([]AlbumModel,error)
+	FindAlbumFromDB(id string)(*AlbumModel,error) 
+	DeleteAlbumFromDB(id string) error
 }
 func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) AlbumMongoService {
 	return &AlbumMongoContext{
@@ -24,6 +28,33 @@ func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) Album
 		mongoclinet: mongoclinet,
 	}
 }
+
+func (ac *AlbumMongoContext) DeleteAlbumFromDB(id string)error  {
+	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
+	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
+
+	result,err:=dbref.DeleteOne(ac.ctx,filter)
+	 if err!=nil {
+		return err
+	 }else if result.DeletedCount !=1 {
+		return errors.New("no matched album found for delete")
+	 }
+	return nil
+}
+
+func (ac *AlbumMongoContext) FindAlbumFromDB(id string)(*AlbumModel,error)  {
+	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
+	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
+	var albumModel AlbumModel
+	fmt.Println(filter)
+	fmt.Println(albumModel.Artist)
+	err:=dbref.FindOne(ac.ctx,filter).Decode(&albumModel)
+	 if err!=nil {
+		return nil,errors.New("no album found")
+	 }
+	return &albumModel,nil
+}
+
 
 func (ac *AlbumMongoContext)InsertAlbumToDB(addAlbum *AddAlbumModel)(*AlbumModel,error)  {
 	var dbref =ac.mongoclinet.Database("albumDb").Collection("albums")
@@ -70,7 +101,7 @@ func (ac *AlbumMongoContext)GetAllAlbumDataFromDB()([]AlbumModel,error){
 	cursor.Close(ac.ctx)
 
 	if len(albumList)==0{
-		return nil,errors.New("No albums found")
+		return nil,errors.New("no albums found")
 	}
 
 	return albumList,nil
