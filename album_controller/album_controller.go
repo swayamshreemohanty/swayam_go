@@ -91,11 +91,18 @@ func (albumController *AlbumController) GetAlbumById(c *gin.Context){
 
 func (albumController *AlbumController) CreateAlbumController(c *gin.Context)  {
 	var newAddAlbum AddAlbumModel	
-	 err:= c.ShouldBind(&newAddAlbum);
-	 if err!=nil{
+	 err1:= c.ShouldBind(&newAddAlbum);
+	 err2:= c.ShouldBindUri(&newAddAlbum);
+	 if err1!=nil{
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
-			"data":err.Error(),
+			"data":err1.Error(),
+			}) 
+		return
+	}else if err2!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"false",
+			"data":err2.Error(),
 			}) 
 		return
 	}else{
