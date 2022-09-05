@@ -3,11 +3,14 @@ package mongodb
 import (
 	"context"
 	"errors"
+	"mime/multipart"
 	"strconv"
 	. "web-server/model"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -27,6 +30,37 @@ func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) Album
 		ctx:ctx,
 		mongoclinet: mongoclinet,
 	}
+}
+
+func UploadImageToMongoDb(image *multipart.FileHeader, albumMongoContext *AlbumMongoContext) (*string, error)  {
+	var dbref =albumMongoContext.mongoclinet.Database("albumDb")
+	bucket,err:=gridfs.NewBucket(dbref)
+	if err != nil {
+		return nil,err
+	}
+	uploadStream, err:=bucket.OpenUploadStream(image.Filename)
+	if err != nil {
+		return nil,err
+
+	}
+	defer uploadStream.Close()
+	
+	_,err= uploadStream.Write([]byte(image.Filename))
+	if err != nil {
+		return nil,err
+	}
+	// filter:=bson.D{primitive.E{Key:"filename",Value:image.Filename}}
+
+	// var imageId MongoImage
+	// err= dbref.Collection("fs.files").FindOne(albumMongoContext.ctx,filter).Decode(&imageId)
+	// if err!=nil{
+	// 	return err
+	// }
+	// you can print out the result
+	// fmt.Println("/////////////////////////")
+	// fmt.Println(imageId)
+	imageUrl:="images/"+image.Filename
+	return &imageUrl,nil
 }
 
 func (albumMongoContext *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id string)error  {
@@ -85,6 +119,11 @@ func (albumMongoContext *AlbumMongoContext) InsertAlbumToDB(addAlbum *AddAlbumMo
 		//set the lastElementid to 0, if there is error in find last element, mean the collection is empty
 		lastElementid=0
 	}
+	imageUrl,err:=UploadImageToMongoDb(addAlbum.Image,albumMongoContext)
+	if err!=nil {
+		return nil,err
+	}
+	newAlbum.Image= *imageUrl
 	newElementId:=strconv.Itoa(lastElementid+1)
 	newAlbum.Id=newElementId
 	newAlbum.Title=addAlbum.Title
