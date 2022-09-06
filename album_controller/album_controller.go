@@ -21,12 +21,11 @@ func New(albumService AlbumMongoService)  AlbumController{
 func (albumController *AlbumController) UpdateAlbum(c *gin.Context)  {
 	var newAddAlbum AddAlbumModel	
 	id:=c.Param("id")
-
 	 err:= c.ShouldBind(&newAddAlbum);
 	 if err!=nil{
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
-			"data":err.Error(),
+			"message":err.Error(),
 			}) 
 		return
 	}else{
@@ -52,7 +51,7 @@ func (albumController *AlbumController) DeleteAlbumById(c *gin.Context)  {
 	if err != nil {
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
-			"data":err.Error(),
+			"message":err.Error(),
 			})
 	}else{
 		c.JSON(http.StatusAccepted,gin.H{
@@ -81,7 +80,7 @@ func (albumController *AlbumController) GetAlbumImageByName(c *gin.Context){
 	//get current directory path
 	mydir, err := os.Getwd()
     if err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{"Error":err.Error()})
+		c.JSON(http.StatusBadRequest,gin.H{"message":err.Error()})
 		return
     }
 	c.File(mydir+"/album/image/"+filename)
@@ -92,7 +91,7 @@ func (albumController *AlbumController) GetAlbumById(c *gin.Context){
 
 	albums,err:= albumController.albumMongoService.FindAlbumFromDB(id)
 	if err!=nil {
-		c.JSON(http.StatusBadRequest,gin.H{"Error":err.Error()})
+		c.JSON(http.StatusBadRequest,gin.H{"message":err.Error()})
 		return
 	}else{
 		c.JSON(http.StatusOK,gin.H{
@@ -109,13 +108,13 @@ func (albumController *AlbumController) CreateAlbumController(c *gin.Context)  {
 	 if err1!=nil{
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
-			"data":err1.Error(),
+			"message":err1.Error(),
 			}) 
 		return
 	}else if err2!=nil{
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
-			"data":err2.Error(),
+			"message":err2.Error(),
 			}) 
 		return
 	}else{
@@ -123,7 +122,7 @@ func (albumController *AlbumController) CreateAlbumController(c *gin.Context)  {
 		if (err!=nil) {
 			c.JSON(http.StatusBadRequest,gin.H{
 				"status":"false",
-				"data":err.Error(),
+				"message":err.Error(),
 				}) 
 			return
 		}
