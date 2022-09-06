@@ -25,7 +25,7 @@ type AlbumMongoService interface{
 	GetAllAlbumDataFromDB() ([]AlbumModel,error)
 	FindAlbumFromDB(id string)(*AlbumModel,error) 
 	DeleteAlbumFromDB(id string) error
-	UpdateAlbumOnDB(newAddAlbum *AddAlbumModel,id string)error
+	UpdateAlbumOnDB(newAddAlbum *AddAlbumModel,id string)(*AlbumModel,error)
 }
 func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) AlbumMongoService {
 	return &AlbumMongoContext{
@@ -53,11 +53,11 @@ func StoreImage(image *multipart.FileHeader) (*string, error)  {
 	if err != nil {
 		return nil,err
 	}
-	imageUrl:= "/album/image"+filepath.Base(image.Filename)
+
+	imageUrl:= "/album/image/"+filepath.Base(image.Filename)
 	defer src.Close()
 
 	dst,err:= os.Create(filepath.FromSlash(mydir+imageUrl))
-	
 	if err != nil {
 		return nil,err
 	}
@@ -71,17 +71,30 @@ func StoreImage(image *multipart.FileHeader) (*string, error)  {
 	return &imageUrl,nil
 }
 
-func (albumMongoContext *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id string)error  {
+func (albumMongoContext *AlbumMongoContext) UpdateAlbumOnDB(newUpdatedAlbum *AddAlbumModel,id string)(*AlbumModel,error)  {
 	var dbref =albumMongoContext.mongoclinet.Database("albumDb").Collection("albums")
 	filter:=bson.D{primitive.E{Key:"_id",Value:id}}
-	update:=bson.M{"$set": newUpdatedAlbum}
+
+	imageUrl,err:=StoreImage(newUpdatedAlbum.Image)
+	if err!=nil {
+		return nil,err
+	}
+
+	var updatedAlbumModel AlbumModel
+	updatedAlbumModel.Id=id
+	updatedAlbumModel.Title=newUpdatedAlbum.Title
+	updatedAlbumModel.Artist=newUpdatedAlbum.Artist
+	updatedAlbumModel.Price=newUpdatedAlbum.Price
+	updatedAlbumModel.Image=*imageUrl
+
+	update:=bson.M{"$set": updatedAlbumModel}
 	result,err:=dbref.UpdateOne(albumMongoContext.ctx,filter,update)
 	 if err!=nil {
-		return err
+		return nil,err
 	 }else if result.MatchedCount !=1 {
-		return errors.New("no matched album found for update")
+		return nil,errors.New("no matched album found for update")
 	 }
-	return nil
+	return &updatedAlbumModel,nil
 }
 
 func (albumMongoContext *AlbumMongoContext) DeleteAlbumFromDB(id string)error  {

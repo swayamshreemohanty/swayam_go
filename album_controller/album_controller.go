@@ -30,7 +30,7 @@ func (albumController *AlbumController) UpdateAlbum(c *gin.Context)  {
 			}) 
 		return
 	}else{
-		err:=albumController.albumMongoService.UpdateAlbumOnDB(&newAddAlbum,id)
+		updatedModel,err:=albumController.albumMongoService.UpdateAlbumOnDB(&newAddAlbum,id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,gin.H{
 			"status":"false",
@@ -39,7 +39,7 @@ func (albumController *AlbumController) UpdateAlbum(c *gin.Context)  {
 	}else{
 		c.JSON(http.StatusAccepted,gin.H{
 			"status":"true",
-			"data":newAddAlbum,
+			"data":updatedModel,
 		})
 		}
 	}
