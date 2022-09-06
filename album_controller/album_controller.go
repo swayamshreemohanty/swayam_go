@@ -2,6 +2,7 @@ package album_controller
 
 import (
 	"net/http"
+	"os"
 	. "web-server/model"
 	. "web-server/mongodb"
 	"github.com/gin-gonic/gin"
@@ -74,6 +75,18 @@ func (albumController *AlbumController) GetAllAlbumData(c *gin.Context){
 	}
 }
 
+func (albumController *AlbumController) GetAlbumImageByName(c *gin.Context){
+	filename:=c.Param("filename")
+
+	//get current directory path
+	mydir, err := os.Getwd()
+    if err != nil {
+		c.JSON(http.StatusBadRequest,gin.H{"Error":err.Error()})
+		return
+    }
+	c.File(mydir+"/album/image/"+filename)
+}
+
 func (albumController *AlbumController) GetAlbumById(c *gin.Context){
 	id:=c.Param("id")
 
@@ -127,7 +140,10 @@ func (albumController *AlbumController) RegisterAlbumRoutes(ginRouter *gin.Route
 	albumRoute:=ginRouter.Group("/albums")
 	albumRoute.POST("/create",albumController.CreateAlbumController)
 	albumRoute.GET("",albumController.GetAllAlbumData)
-	albumRoute.DELETE("deleteAlbum/:id", albumController.DeleteAlbumById)
+	albumRoute.DELETE("/deleteAlbum/:id", albumController.DeleteAlbumById)
 	albumRoute.GET("/:id", albumController.GetAlbumById)
-	albumRoute.PUT("editAlbum/:id", albumController.UpdateAlbum)
+	albumRoute.PUT("/editAlbum/:id", albumController.UpdateAlbum)
+
+	//get the image
+	albumRoute.GET("/album/image/:filename",albumController.GetAlbumImageByName)
 }
