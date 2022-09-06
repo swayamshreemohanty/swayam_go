@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 	. "web-server/model"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -35,7 +34,10 @@ func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) Album
 }
 
 func StoreImage(image *multipart.FileHeader) (*string, error)  {
-	
+	if(image.Size>10485760){ //10485760 bytes or 10Mb
+	return nil,errors.New("File size must be less than 10 Mb")
+	}
+
 	src, err:=image.Open()
 	if err!=nil {
 		return nil,err
