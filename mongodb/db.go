@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	. "web-server/model"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -35,13 +36,14 @@ func AlbumMongoServiceInit(ctx context.Context, mongoclinet *mongo.Client) Album
 
 func StoreImage(image *multipart.FileHeader) (*string, error)  {
 	if(image.Size>10485760){ //10485760 bytes or 10Mb
-	return nil,errors.New("File size must be less than 10 Mb")
+	return nil,errors.New("file size must be less than 10 Mb")
 	}
 
 	src, err:=image.Open()
 	if err!=nil {
 		return nil,err
 	}
+	defer src.Close()
 
 	//get current directory path
 	mydir, err := os.Getwd()
@@ -49,21 +51,23 @@ func StoreImage(image *multipart.FileHeader) (*string, error)  {
 		return nil,err
     }
 
-	path:=mydir+""
 	
-	err = os.MkdirAll(path, os.ModePerm)
+	imagePath:= "/album/image/"
+	path:=filepath.FromSlash(mydir+imagePath)
+
+	//create image path if not present
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			return nil,err
+		}
+	}
+	imageUrl:= path+filepath.Base(image.Filename)
+
+	dst,err:= os.Create(imageUrl)
 	if err != nil {
 		return nil,err
 	}
-
-	imageUrl:= "/album/image/"+filepath.Base(image.Filename)
-	defer src.Close()
-
-	dst,err:= os.Create(filepath.FromSlash(mydir+imageUrl))
-	if err != nil {
-		return nil,err
-	}
-
 	defer dst.Close()
 
 	_,err= io.Copy(dst,src)	
