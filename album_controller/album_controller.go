@@ -5,6 +5,7 @@ import (
 	"os"
 	. "web-server/model"
 	. "web-server/mongodb"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -102,6 +103,13 @@ func (albumController *AlbumController) GetAlbumById(c *gin.Context){
 }
 
 func (albumController *AlbumController) CreateAlbumController(c *gin.Context)  {
+	err:=c.Request.ParseMultipartForm(10485760)
+	if err!=nil {
+		c.JSON(http.StatusBadRequest,gin.H{
+			"status":"false",
+			"message":"File size must be lesssss than 10 Mb",
+			}) 
+	}
 	var newAddAlbum AddAlbumModel	
 	 err1:= c.ShouldBind(&newAddAlbum);
 	 err2:= c.ShouldBindUri(&newAddAlbum);
