@@ -76,7 +76,8 @@ func (albumController *AlbumController) GetAllAlbumData(c *gin.Context){
 }
 
 func (albumController *AlbumController) GetAlbumImageByName(c *gin.Context){
-	filename:=c.Param("filename")
+	// filename:=c.Param("filename")
+	// c.File(mydir+"/album/image/"+filename)
 
 	//get current directory path
 	mydir, err := os.Getwd()
@@ -84,7 +85,9 @@ func (albumController *AlbumController) GetAlbumImageByName(c *gin.Context){
 		c.JSON(http.StatusBadRequest,gin.H{"message":err.Error()})
 		return
     }
-	c.File(mydir+"/album/image/"+filename)
+	//ex:convert /v1/albums/album/image/fork-assembly.jpg to /album/image/fork-assembly.jpg
+	imagePath:=c.Request.URL.Path[10:] 
+	c.File(mydir+imagePath)
 }
 
 func (albumController *AlbumController) GetAlbumById(c *gin.Context){
@@ -152,5 +155,5 @@ func (albumController *AlbumController) RegisterAlbumRoutes(ginRouter *gin.Route
 	albumRoute.PUT("/editAlbum/:id", albumController.UpdateAlbum)
 
 	//get the image
-	albumRoute.GET("/album/image/:filename",albumController.GetAlbumImageByName)
+	albumRoute.GET("/album/images/:filename",albumController.GetAlbumImageByName)
 }
