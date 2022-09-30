@@ -52,8 +52,8 @@ func StoreImage(image *multipart.FileHeader) (*string, error)  {
     }
 
 	
-	imagePath:= "/album/image/"
-	path:=filepath.FromSlash(mydir+imagePath)
+	imageDirectoryPath:= "/album/images/"
+	path:=filepath.FromSlash(mydir+imageDirectoryPath)
 
 	//create image path if not present
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
@@ -62,9 +62,9 @@ func StoreImage(image *multipart.FileHeader) (*string, error)  {
 			return nil,err
 		}
 	}
-	imageUrl:= path+filepath.Base(image.Filename)
+	imageStorePath:= path+filepath.Base(image.Filename)
 
-	dst,err:= os.Create(imageUrl)
+	dst,err:= os.Create(imageStorePath)
 	if err != nil {
 		return nil,err
 	}
@@ -74,6 +74,7 @@ func StoreImage(image *multipart.FileHeader) (*string, error)  {
 	if err != nil {
 		return nil,err
 	}
+	imageUrl:="v1/albums"+imageDirectoryPath+filepath.Base(image.Filename)
 	return &imageUrl,nil
 }
 
